@@ -126,21 +126,15 @@ def load_screen():
 ╚═╝░░░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═╝░░░╚═╝░░░░╚════╝░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░
 
 
-
-
                     """)
 
 
 #VARIABLES
 
-#Shodan API key
-#SHODAN_API_KEY = 'wZJ7prinv4FWzr36XzsNFJPAO6WqUxZ4'
-
+#Pull in API Keys from config.py file
 SHODAN_API_KEY = config.SHODAN_API_KEY
 api = shodan.Shodan(SHODAN_API_KEY)
 
-#msteams webhook api
-#myTeamsMessage = pymsteams.connectorcard("https://sunysysadmin.webhook.office.com/webhookb2/80741552-0f13-46fb-8f27-54f9ac0ef689@313006a2-ae5d-4419-9e34-8f765b197fb8/IncomingWebhook/03feee30270d42349aeff2519cf7ab2d/0e323094-f8ee-4e37-8f31-9b4348a3efa9")
 MSTEAMS_API_KEY = config.MSTEAMS_API_KEY
 myTeamsMessage = pymsteams.connectorcard(MSTEAMS_API_KEY)
 
@@ -188,7 +182,6 @@ myTeamsMessage.text(campus_result)
 myTeamsMessage.send()
 
 """
-
  (              )      )   (        )                         
  )\ )        ( /(   ( /(   )\ )  ( /(    (                    
 (()/(    (   )\())  )\()) (()/(  )\())   )\                   
@@ -197,13 +190,13 @@ myTeamsMessage.send()
 / __|| | | || \| |\ \ / / / __|  / _ \((/ __|                 
 \__ \| |_| || .` | \ V /  \__ \ | (_) || (__                  
 |(__/ \___/ |_|\_|  |_|   |___/  \___/  \___|                 
+
 ______         _                _                   
 | ___ \       (_)              | |                  
 | |_/ /__ _ __ _ _ __ ___   ___| |_ ___ _ __        
 |  __/ _ \ '__| | '_ ` _ \ / _ \ __/ _ \ '__|       
 | | |  __/ |  | | | | | | |  __/ ||  __/ |          
 \_|  \___|_|  |_|_| |_| |_|\___|\__\___|_|          
-                                                    
                                                     
 ___  ___            _ _             _             _ 
 |  \/  |           (_) |           (_)           | |
@@ -214,27 +207,9 @@ ___  ___            _ _             _             _
                                              __/ |  
                                             |___/   
 
-
                """
 
 
-
-##OLD JUNK
-            
-#find the difference between the old file and the new.
-
-"""
-with open('old_campus.txt') as file_1:
-    file_1_text = file_1.readlines()
-
-with open('new_campus.txt') as file_2:
-    file_2_text = file_2.readlines()
-
-# Find and print the unified diff:
-for line in difflib.unified_diff(
-       file_1_text, file_2_text, fromfile='old_campus.txt', tofile='new_campus.txt', lineterm=''):
-    print(line)
-"""
 
 
 
