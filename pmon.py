@@ -14,19 +14,26 @@ def shodan_query(ip, name):
         try:
                 print("SOC Perimeter Monitoring is scanning " + name + "...")
                 # Search Shodan for campus
-                results = api.search('net:'+ip)
+
+
+                result_list = []
+                page = 0
+                while len(result_list) >= (page*100)-4:
+                    page = page + 1
+                    results = api.search('net:'+ip,page,minify=True)
+                    # loop through the search results and pull out IP and Port and putting it in a list, result_list
+                    for result in results['matches']:
+                        # add IP and Port to list
+                        result_list.append(str(result['ip_str']) + ":" + str(result['port']) + "\n")
+                    print(len(result_list))
+
+
+
+                # sort the list
+                result_list.sort()
 
                 #create a file to store new result
                 file1 = open (name + "_new.txt", "w")
-                result_list = []
-                #loop through the search results and pull out IP and Port and putting it in a list, result_list
-                for result in results['matches']:
-                        #add IP and Port to list
-                        result_list.append(str(result['ip_str']) + ":" + str(result['port']) + "\n")
-
-                #sort the list
-                result_list.sort()
-                
                 #go through the list and write to file
                 for items in result_list:
                         file1.writelines(items)
