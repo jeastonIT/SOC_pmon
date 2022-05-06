@@ -18,7 +18,7 @@ def shodan_query(ip, name):
 
                 result_list = []
                 page = 0
-                while len(result_list) >= (page*100)-4:
+                while len(result_list) >= (page*90):
                     page = page + 1
                     results = api.search('net:'+ip,page,minify=True)
                     # loop through the search results and pull out IP and Port and putting it in a list, result_list
