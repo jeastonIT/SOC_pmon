@@ -10,8 +10,7 @@ import config
 #FUNCTIONS
 
 # search for Campus info and return IP and port to a new_campus.txt file and then diff the two results
-
-def shodan_query_diff(ip, name):
+def shodan_query(ip, name):
         try:
                 print("SOC Perimeter Monitoring is scanning " + name + "...")
                 # Search Shodan for campus
@@ -56,10 +55,9 @@ def shodan_query_diff(ip, name):
                 print('Error: {}'.format(e))
 
 #readable diff for the Teams output
-#def differ(name):
-                #DIFF a more readable diff
+def differ(name):
 
-                """change=""
+                change=""
                 with open(name + '_base.txt') as file_1, open(name + '_new.txt') as file_2:
                     differ = Differ()
                     for line in differ.compare(file_1.readlines(), file_2.readlines()):
@@ -75,7 +73,6 @@ def shodan_query_diff(ip, name):
                     return ("**" + name + "**" + ": No change " + "\n")
                 else:
                     return ("**" + name + "**" + "\n" + change + "\n")
-"""
 
 #full unified diff for the file output
 def unified_diff(name):
@@ -98,38 +95,8 @@ def unified_diff(name):
         return result
 
 
-#load screen function
-                
-def load_screen():
-        print("""\
 
-
-░██████╗██╗░░░██╗███╗░░██╗██╗░░░██╗  ░██████╗░█████╗░░█████╗░  
-██╔════╝██║░░░██║████╗░██║╚██╗░██╔╝  ██╔════╝██╔══██╗██╔══██╗  
-╚█████╗░██║░░░██║██╔██╗██║░╚████╔╝░  ╚█████╗░██║░░██║██║░░╚═╝  
-░╚═══██╗██║░░░██║██║╚████║░░╚██╔╝░░  ░╚═══██╗██║░░██║██║░░██╗  
-██████╔╝╚██████╔╝██║░╚███║░░░██║░░░  ██████╔╝╚█████╔╝╚█████╔╝  
-╚═════╝░░╚═════╝░╚═╝░░╚══╝░░░╚═╝░░░  ╚═════╝░░╚════╝░░╚════╝░  
-
-██████╗░███████╗██████╗░██╗███╗░░░███╗███████╗████████╗███████╗██████╗░
-██╔══██╗██╔════╝██╔══██╗██║████╗░████║██╔════╝╚══██╔══╝██╔════╝██╔══██╗
-██████╔╝█████╗░░██████╔╝██║██╔████╔██║█████╗░░░░░██║░░░█████╗░░██████╔╝
-██╔═══╝░██╔══╝░░██╔══██╗██║██║╚██╔╝██║██╔══╝░░░░░██║░░░██╔══╝░░██╔══██╗
-██║░░░░░███████╗██║░░██║██║██║░╚═╝░██║███████╗░░░██║░░░███████╗██║░░██║
-╚═╝░░░░░╚══════╝╚═╝░░╚═╝╚═╝╚═╝░░░░░╚═╝╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝
-
-███╗░░░███╗░█████╗░███╗░░██╗██╗████████╗░█████╗░██████╗░██╗███╗░░██╗░██████╗░
-████╗░████║██╔══██╗████╗░██║██║╚══██╔══╝██╔══██╗██╔══██╗██║████╗░██║██╔════╝░
-██╔████╔██║██║░░██║██╔██╗██║██║░░░██║░░░██║░░██║██████╔╝██║██╔██╗██║██║░░██╗░
-██║╚██╔╝██║██║░░██║██║╚████║██║░░░██║░░░██║░░██║██╔══██╗██║██║╚████║██║░░╚██╗
-██║░╚═╝░██║╚█████╔╝██║░╚███║██║░░░██║░░░╚█████╔╝██║░░██║██║██║░╚███║╚██████╔╝
-╚═╝░░░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═╝░░░╚═╝░░░░╚════╝░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░
-
-
-                    """)
-
-
-#VARIABLES
+#MAIN
 
 #Pull in API Keys from config.py file
 SHODAN_API_KEY = config.SHODAN_API_KEY
@@ -149,7 +116,7 @@ campus_result = ""
 comp_result = ""
 
 #run fun screen
-load_screen()
+print(config.load_screen)
 
 #get the campus CIDR blocks from campus.cfg file
 with fileinput.FileInput(files=('campus.cfg'), mode='r') as input:
@@ -158,17 +125,14 @@ with fileinput.FileInput(files=('campus.cfg'), mode='r') as input:
         #if the first character of the line is a digit it gets sent to the IP variable    
         if line.startswith(('0','1','2','3', '4', '5', '6', '7', '8', '9')):
              ip = (line)
+             shodan_query(ip,name)
+             campus_result = campus_result + "\n" + differ(name)
+             comp_result = comp_result + "\n" + unified_diff(name)
              
         #if the first character is anything else its value gets sent to name
         else: 
             name = line.strip()
-            #we have hit the name line, erase value in ip
-            ip = ""
-        #prevent anything but a number (IP) from doing an search
-        if ip != "":
-            #probably can move this to first If statement
-            campus_result = campus_result + "\n" + shodan_query_diff(ip, name)
-            comp_result = comp_result + "\n" + unified_diff(name)
+
 
 #put the results in a time stamped file.
 time = datetime.now().strftime("%Y_%m_%d_%H_%M")
@@ -180,36 +144,3 @@ file.close
 myTeamsMessage.title("SOC Perimeter Monitoring Report")
 myTeamsMessage.text(campus_result)
 myTeamsMessage.send()
-
-"""
- (              )      )   (        )                         
- )\ )        ( /(   ( /(   )\ )  ( /(    (                    
-(()/(    (   )\())  )\()) (()/(  )\())   )\                   
- /(_))   )\ ((_)\  ((_)\   /(_))((_)\  (((_)                  
-(_))  _ ((_) _((_)__ ((_) (_))    ((_) )\___                  
-/ __|| | | || \| |\ \ / / / __|  / _ \((/ __|                 
-\__ \| |_| || .` | \ V /  \__ \ | (_) || (__                  
-|(__/ \___/ |_|\_|  |_|   |___/  \___/  \___|                 
-
-______         _                _                   
-| ___ \       (_)              | |                  
-| |_/ /__ _ __ _ _ __ ___   ___| |_ ___ _ __        
-|  __/ _ \ '__| | '_ ` _ \ / _ \ __/ _ \ '__|       
-| | |  __/ |  | | | | | | |  __/ ||  __/ |          
-\_|  \___|_|  |_|_| |_| |_|\___|\__\___|_|          
-                                                    
-___  ___            _ _             _             _ 
-|  \/  |           (_) |           (_)           | |
-| .  . | ___  _ __  _| |_ ___  _ __ _ _ __   __ _| |
-| |\/| |/ _ \| '_ \| | __/ _ \| '__| | '_ \ / _` | |
-| |  | | (_) | | | | | || (_) | |  | | | | | (_| |_|
-\_|  |_/\___/|_| |_|_|\__\___/|_|  |_|_| |_|\__, (_)
-                                             __/ |  
-                                            |___/   
-
-               """
-
-
-
-
-
