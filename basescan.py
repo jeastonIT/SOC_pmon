@@ -10,6 +10,7 @@ def shodan_query(ip, name):
 
                 result_list = []
                 page = 0
+                # need to read multiple pages of the shodan search, "about" 100 results per page.
                 while len(result_list) >= (page * 90):
                     page = page + 1
                     results = api.search('net:' + ip, page, minify=True)

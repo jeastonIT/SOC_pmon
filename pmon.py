@@ -15,11 +15,12 @@ def shodan_query(ip, name):
                 print("SOC Perimeter Monitoring is scanning " + name + "...")
                 # Search Shodan for campus
 
-
                 result_list = []
                 page = 0
+                #need to read multiple pages of the shodan search, "about" 100 results per page.
                 while len(result_list) >= (page*90):
                     page = page + 1
+                    #results is a dictionary
                     results = api.search('net:'+ip,page,minify=True)
                     # loop through the search results and pull out IP and Port and putting it in a list, result_list
                     for result in results['matches']:
