@@ -4,7 +4,7 @@ import ipaddress
 
 
 while True:
-    campus = input('Enter the campus name (as shown the Perimeter output: ')
+    campus = input('Enter the campus name (as shown in the Perimeter output): ')
     base_file = campus + "_base.txt"
     if os.path.exists(base_file):
         break
@@ -18,7 +18,7 @@ file1 = open(base_file, "r")
 
 #read the existing file into a list
 result_list = file1.readlines()
-print(result_list)
+#print(result_list)
 
 #get the IP address
 while True:
@@ -44,7 +44,7 @@ result_list.append(allow_asset+"\n")
 
 #sort the list
 result_list.sort()
-print(result_list)
+#print(result_list)
 
 file1 = open(base_file, "w")
 #read the result_list back into the file
@@ -52,3 +52,4 @@ for items in result_list:
     file1.writelines(items)
 file1.close()
 
+print ("IP and Port " + allow_asset + " have been added to " + campus + " known external network")
