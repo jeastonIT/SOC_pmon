@@ -1,15 +1,19 @@
 # SOC_pmon
 
 
-The goal of this project is to monitor all campus external network footprints and to notify then when a change occurs. 
+The goal of this project is to monitor all campus external network IPs and Ports and to notify them when a new asset appears externally. 
 
 basescan.py
 
-This script will query shodan for all campus IPs and Ports showing for their CIDR blocks and save these as <campus>_base.txt files.
+This program will query shodan for all campus IPs and Ports showing for their CIDR block ranegs and save these as a <campus>_base.txt file.
   
 pmon.py 
   
-This script will quest shodan for a new set of campus IP and Port information and compare it to any campus base scans. 
+This program will query shodan for a new set of campus IPs and Ports and compare this result to the campus base scans. Note: Order matters in the comparison. Which is why pmon sorts these lists.
+
+allow.py
+
+This program will allow a user to add an IP address and a port to the base scan file.   
 
 campus.cfg
   
