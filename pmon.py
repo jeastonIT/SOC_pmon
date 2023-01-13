@@ -5,7 +5,7 @@ from difflib import Differ
 import fileinput
 #import pymsteams
 import config
-
+import os
 
 #FUNCTIONS
 
@@ -44,7 +44,8 @@ def shodan_query(ip, name):
         except shodan.APIError as e:
                 print('Error: {}'.format(e))
 
-def differ(name):
+#compares the base and new scan files and filters for ports of concern AND writes to a result folder
+def differ(name, path):
 
                 change=name
                 with open(name + '_base.txt') as file_1, open(name + '_new.txt') as file_2:
@@ -66,25 +67,14 @@ def differ(name):
                                 #print(line)
                                 #change = change + "| " + line
                                 change = change + "\n" + line
-
+                #output change to the screen
                 print(change)
-                #put the results in a time stamped file.
-                #time = datetime.now().strftime("%Y_%m_%d")
+                #setup the new folder
                 if change != name:
-                    file1 = open('/opt/pmon/results/'+ name + "_Results_.txt", "w")
-                #for items in result:
-                #file.writelines(items)
+                    file1 = open(path + "/" + name + "_Results_.txt", "w")
                     file1.write(change)
-#send unitified diff to file
-#file.write(comp_result)
                     file1.close
 
-                #print(change)
-                if change == "":
-                #    return ("**" + name + "**" + ": No change " + "\n")
-                    return ("None")
-                else:
-                    return (change + "\n")
 
 
 #full unified diff for the file output
@@ -124,17 +114,21 @@ ip = ""
 #campus name
 name = ""
 #result for teams
-campus_result = ""
+#campus_result = ""
 #result for file
 comp_result = ""
+
+#variable used for file name
+time = datetime.now().strftime("%Y_%m_%d_%H_%M")
 
 #run fun screen
 print(config.load_screen)
 
-#put the results in a time stamped file.
-#create and open the file
-time = datetime.now().strftime("%Y_%m_%d_%H_%M")
-file = open("Simplified_Results_" + time + ".txt", "w")
+#make results folder time stamped
+directory = 'results_' + time
+parent_dir = '/opt/pmon/'
+path = os.path.join(parent_dir,directory)
+os.mkdir(path)
 
 
 #get the campus CIDR blocks from campus.cfg file
@@ -145,31 +139,31 @@ with fileinput.FileInput(files=('campus.cfg'), mode='r') as input:
         #if the first character of the line is a digit it gets sent to the IP variable
         if line.startswith(('0','1','2','3', '4', '5', '6', '7', '8', '9')):
              ip = (line)
+             #query shodan data base for visible assets
+             #not assets expire after 30days from last seen
              shodan_query(ip,name)
+             #comp_result is all campus results as unified diff of new and base files
              #make comp_result file output BEFORE campus_result teams output, so it has unfiltered results
              comp_result = comp_result + "\n" + unified_diff(name)
-             #single campus result in result, simple diff that is reported to teams
-             result = differ(name)
-             #campus result gets each new campus result added
-             #campus_result = campus_result + "\n" + result
-             #have each campus reported to Teams (instead of entire campus result
+             #single campus result in result, simple diff and ports of concern filter
+             # saved to results folder campus named text files
+             result = differ(name, path)
+
+             #old MSteams reporting line
              #if result != "None":
                  #myTeamsMessage.title(name)
               #   myTeamsMessage.text(result)
               #   myTeamsMessage.send()
 
-             #put the results into the simplied file
-             for items in result:
-                 file.writelines(items)
         #if the first character is anything else its value gets sent to name
         else:
             name = line.strip()
 
 
-#put the results in a time stamped file.
-time = datetime.now().strftime("%Y_%m_%d_%H_%M")
+#put all results in a time stamped file.
+#time = datetime.now().strftime("%Y_%m_%d_%H_%M")
 file2 = open("0_All_Results_" + time + ".txt", "w")
 #send unitified diff to file
-file.write(comp_result)
-file.close
+file2.write(comp_result)
+file2.close
 
