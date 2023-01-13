@@ -3,7 +3,7 @@ from datetime import datetime
 import difflib
 from difflib import Differ
 import fileinput
-import pymsteams
+#import pymsteams
 import config
 
 
@@ -21,7 +21,7 @@ def shodan_query(ip, name):
                 while len(result_list) >= (page*90):
                     page = page + 1
                     #results is a dictionary
-                    results = api.search('net:'+ip,page,minify=True)
+                    results = api.search('net:'+ip+' -hash:0',page,minify=True)
                     # loop through the search results and pull out IP and Port and putting it in a list, result_list
                     for result in results['matches']:
                         # add IP and Port to list
@@ -40,47 +40,52 @@ def shodan_query(ip, name):
                         file1.writelines(items)
                 file1.close()
 
-                #DIFF a more readable diff
-                change=""
-                with open(name + '_base.txt') as file_1, open(name + '_new.txt') as file_2:
-                    differ = Differ()
-                    for line in differ.compare(file_1.readlines(), file_2.readlines()):
-                        #only output changes instead of what stayed the same
-                        #if line.startswith(('+','-')):
-                        if line.startswith(('+')):
-                                #print(line)
-                                #change = change + "| " + line
-                                change = change + "\n" + line
-
-                print(change)
-                if change == "":
-                    return ("**" + name + "**" + ": No change " + "\n")
-                else:
-                    return ("**" + name + "**" + "\n" + change + "\n")
-
 
         except shodan.APIError as e:
                 print('Error: {}'.format(e))
 
-#readable diff for the Teams output
 def differ(name):
 
-                change=""
+                change=name
                 with open(name + '_base.txt') as file_1, open(name + '_new.txt') as file_2:
                     differ = Differ()
                     for line in differ.compare(file_1.readlines(), file_2.readlines()):
-                        #only output changes instead of what stayed the same
-                        #if line.startswith(('+','-')):
-                        if line.startswith(('+')):
+                        #decide whether or not to show the asset (line)
+                        line_show = False
+                        #we are looking for these ports
+                        ports_of_concern = [21 ,22 ,23 ,25 ,53 ,69 ,88 ,135 ,137 ,139 ,161 ,179 ,
+                                            445 ,464 ,512 ,513 ,514 ,1433 ,1434 ,2049 ,2100 ,2483 ,
+                                            2484 ,3290 ,3306 ,3389 ,4333 ,5432 ,9100 ,27019
+                        ]
+                        for i in ports_of_concern:
+                        #checking for all the ports of concerns, setting line_show true if found
+                            if line.endswith(":" + str(i) + '\n'):
+                                line_show = True
+                        #only output new visible assets that match the ports of concern
+                        if line.startswith('+') and line_show:
                                 #print(line)
                                 #change = change + "| " + line
                                 change = change + "\n" + line
 
                 print(change)
+                #put the results in a time stamped file.
+                #time = datetime.now().strftime("%Y_%m_%d")
+                if change != name:
+                    file1 = open('/opt/pmon/results/'+ name + "_Results_.txt", "w")
+                #for items in result:
+                #file.writelines(items)
+                    file1.write(change)
+#send unitified diff to file
+#file.write(comp_result)
+                    file1.close
+
+                #print(change)
                 if change == "":
-                    return ("**" + name + "**" + ": No change " + "\n")
+                #    return ("**" + name + "**" + ": No change " + "\n")
+                    return ("None")
                 else:
-                    return ("**" + name + "**" + "\n" + change + "\n")
+                    return (change + "\n")
+
 
 #full unified diff for the file output
 def unified_diff(name):
@@ -110,8 +115,8 @@ def unified_diff(name):
 SHODAN_API_KEY = config.SHODAN_API_KEY
 api = shodan.Shodan(SHODAN_API_KEY)
 
-MSTEAMS_API_KEY = config.MSTEAMS_API_KEY
-myTeamsMessage = pymsteams.connectorcard(MSTEAMS_API_KEY)
+#MSTEAMS_API_KEY = config.MSTEAMS_API_KEY
+#myTeamsMessage = pymsteams.connectorcard(MSTEAMS_API_KEY)
 
 #initialize variable
 #campus ip
@@ -126,29 +131,45 @@ comp_result = ""
 #run fun screen
 print(config.load_screen)
 
+#put the results in a time stamped file.
+#create and open the file
+time = datetime.now().strftime("%Y_%m_%d_%H_%M")
+file = open("Simplified_Results_" + time + ".txt", "w")
+
+
 #get the campus CIDR blocks from campus.cfg file
+#change campus.cfg to test_campus.cfg to work on
 with fileinput.FileInput(files=('campus.cfg'), mode='r') as input:
     for line in input:
         #print(line)
-        #if the first character of the line is a digit it gets sent to the IP variable    
+        #if the first character of the line is a digit it gets sent to the IP variable
         if line.startswith(('0','1','2','3', '4', '5', '6', '7', '8', '9')):
              ip = (line)
              shodan_query(ip,name)
-             campus_result = campus_result + "\n" + differ(name)
+             #make comp_result file output BEFORE campus_result teams output, so it has unfiltered results
              comp_result = comp_result + "\n" + unified_diff(name)
-             
+             #single campus result in result, simple diff that is reported to teams
+             result = differ(name)
+             #campus result gets each new campus result added
+             #campus_result = campus_result + "\n" + result
+             #have each campus reported to Teams (instead of entire campus result
+             #if result != "None":
+                 #myTeamsMessage.title(name)
+              #   myTeamsMessage.text(result)
+              #   myTeamsMessage.send()
+
+             #put the results into the simplied file
+             for items in result:
+                 file.writelines(items)
         #if the first character is anything else its value gets sent to name
-        else: 
+        else:
             name = line.strip()
 
 
 #put the results in a time stamped file.
 time = datetime.now().strftime("%Y_%m_%d_%H_%M")
-file = open("Results_" + time + ".txt", "w")
+file2 = open("0_All_Results_" + time + ".txt", "w")
+#send unitified diff to file
 file.write(comp_result)
 file.close
 
-#send a message to the Perimonitor Teams channel
-myTeamsMessage.title("SOC Perimeter Monitoring Report")
-myTeamsMessage.text(campus_result)
-myTeamsMessage.send()

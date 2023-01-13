@@ -18,7 +18,7 @@ def shodan_query(ip, name):
                     for result in results['matches']:
                         # add IP and Port to list
                         result_list.append(str(result['ip_str']) + ":" + str(result['port']) + "\n")
-                    print(len(result_list))
+                    #print(len(result_list))
                 #not base sort, 113 > 7
                 result_list.sort()
                 # create a file to store new result
