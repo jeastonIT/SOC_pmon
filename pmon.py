@@ -126,7 +126,7 @@ print(config.load_screen)
 
 #make results folder time stamped
 directory = 'results_' + time
-parent_dir = '/opt/pmon/'
+parent_dir = config.parent_dir
 path = os.path.join(parent_dir,directory)
 os.mkdir(path)
 
