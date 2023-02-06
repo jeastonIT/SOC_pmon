@@ -44,10 +44,62 @@ def shodan_query(ip, name):
         except shodan.APIError as e:
                 print('Error: {}'.format(e))
 
+#search the campus CIDR block for vulns and write any to a _vulns.txt file in timestamped results folder.
+def vuln_query(ip, name, path):
+    try:
+
+        print("Querying Shodan database for " + " any vuln on " + name + " external network" + "...")
+        # Search Shodan for campus
+        result_list = []
+        # ADD VULN HERE
+        # vuln = 'CVE-2022-41040'
+        FACETS = [
+            'vuln.verified',
+        ]
+        # remove new line from string
+        ip = ip.strip()
+        # QUERY for vuln
+        query = 'net:' + ip  # + ' vuln:' + vuln
+        # query for exchange servers + vuln
+        # query = 'net:' + ip + ' http.title:outlook exchange ' + 'vuln:' + vuln
+        vuln_results = api.count(query, facets=FACETS)
+
+        vuln_results_list = vuln_results['facets']['vuln.verified']
+        if vuln_results_list:
+            for i in range(len(vuln_results_list)):
+                vuln_result = vuln_results_list[i]
+                vuln = vuln_result['value']
+                query = 'net:' + ip + ' vuln:' + vuln
+                results = api.search(query, minify=True)
+                # loop through the search results and pull out IP and Port and putting it in a list, result_list
+                for result in results['matches']:
+                    # add IP and Port to list
+                    result_list.append(str(result['ip_str']) + ":" + str(result['port']) + " " + vuln + "\n")
+
+        # create a file to store new result
+        # file name for exchange server
+        # file1 = open(name + "_exchange_vuln.txt", "w")
+        # file name for vuln search
+        # iterate through result_list and write to file
+        result = ""
+        for items in result_list:
+            result = result + items
+        #check if there is any result
+        if result:
+        # file name for vuln search
+                file1 = open(path + "/" + name + "_vulns.txt", "w")
+                file1.writelines(result)
+                file1.close()
+        else:
+            print('no result')
+        print(result)
+    except shodan.APIError as e:
+        print('Error: {}'.format(e))
+
 #compares the base and new scan files and filters for ports of concern AND writes to a result folder
 def differ(name, path):
 
-                change=name
+                change=""
                 with open(name + '_base.txt') as file_1, open(name + '_new.txt') as file_2:
                     differ = Differ()
                     for line in differ.compare(file_1.readlines(), file_2.readlines()):
@@ -66,11 +118,11 @@ def differ(name, path):
                         if line.startswith('+') and line_show:
                                 #print(line)
                                 #change = change + "| " + line
-                                change = change + "\n" + line
+                                change = change + line
                 #output change to the screen
                 print(change)
                 #setup the new folder
-                if change != name:
+                if change != "":
                     file1 = open(path + "/" + name + "_Results_.txt", "w")
                     file1.write(change)
                     file1.close
@@ -142,6 +194,7 @@ with fileinput.FileInput(files=('campus.cfg'), mode='r') as input:
              #query shodan data base for visible assets
              #not assets expire after 30days from last seen
              shodan_query(ip,name)
+             vuln_query(ip,name,path)
              #comp_result is all campus results as unified diff of new and base files
              #make comp_result file output BEFORE campus_result teams output, so it has unfiltered results
              comp_result = comp_result + "\n" + unified_diff(name)
@@ -166,4 +219,3 @@ file2 = open("0_All_Results_" + time + ".txt", "w")
 #send unitified diff to file
 file2.write(comp_result)
 file2.close
-
