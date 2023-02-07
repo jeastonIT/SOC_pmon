@@ -1,15 +1,25 @@
 # SOC_pmon
 
 
-The goal of this project is to monitor all campus external network IPs and Ports and to notify them when a new asset appears externally. 
+The goal of this project is to monitor all campus externally visible network IPs and Ports and to notify the campus when a new asset appears externally. 
+This scope has been narrowed to only notify regarding ports of concern on a monthly basis. (As 30 days is the expiration date of assets in Shodan's database) 
+Additionally, the scope has been expanded to return shodan verified vulnerabilities. 
 
 basescan.py
 
-This program will query shodan for all campus IPs and Ports showing for their CIDR block ranegs and save these as a <campus>_base.txt file.
+This program is depreciated. This program will query shodan for all campus IPs and Ports showing for their CIDR block ranges and save these as a <campus>_base.txt file.
+However, we now use the _base.txt as an allow list. So it is blank except for assets which are not to be included in notifications. 
   
 pmon.py 
   
-This program will query shodan for a new set of campus IPs and Ports and compare this result to the campus base scans. Note: Order matters in the comparison. Which is why pmon sorts these lists.
+This program will query shodan for a new set externally visible campus IPs and Ports and compare this result to the campus base scans, which act as an allow list. 
+There are 3 functions
+shodan_query, which does the query and saves results to _new.txt file. 
+vuln_query, which searches for verified vulns in the campus range and saves results to a timestamped results folder
+
+
+Additionally, the results are sorted by ports of concern and 
+
 
 allow.py
 
