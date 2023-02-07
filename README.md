@@ -16,22 +16,30 @@ This program will query shodan for a new set externally visible campus IPs and P
 There are 3 functions
 shodan_query, which does the query and saves results to _new.txt file. 
 vuln_query, which searches for verified vulns in the campus range and saves results to a timestamped results folder
-
-
-Additionally, the results are sorted by ports of concern and 
+differ, which compares _base.txt and _new.txt and outputs only the assets added in the _new.txt which are ports of concern. 
+unified_diff, returns a unified diff of the _new.txt and _base.txt including ALL assets gone and added. No filtering. This result is saved to a 0_All_Results_*.txt
+timestamped text file in the program directory. 
 
 
 allow.py
 
+This program is depreciated. Simply adding the single IPs and ports to ignore to the _base.txt file. 
 This program will allow a user to add an IP address and a port to the base scan file.   
 
 campus.cfg
   
-Campus IP data is kept in the campus.cfg file. The format is Campus Name, then on the next line CIDR blocks seperated by a comma. No blank lines. 
+Campus IP data is kept in the campus.cfg file. The format is Campus Name, then on the next line CIDR blocks separated by a comma. No blank lines. 
 
 config.py
   
-the config.py keeps the API keys for shodan API and msteams API. 
+the config.py keeps the API keys for shodan API 
+MSteams reporting depreciated because of issues with output. 
+
+single_campus.py
+
+scan a single campus. campus name and CIDR ranges must be input (names must match existing files)
+
+
 
 ---------------------------------------------------
 
